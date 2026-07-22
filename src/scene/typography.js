@@ -123,18 +123,46 @@ export function createTypography(scene) {
     }
 
     // ── 3 · ENGRAVING — services cut into the entry monolith (face z=133.725) ─
+    // One high-res canvas per word: a pale chisel edge low-right and a deep
+    // dark cut — reads as carved stone, not a decal.
     {
       const grp = new THREE.Group();
       scene.add(grp);
       const mats = [];
-      const carve = (word, y, h, sp, px) => {
-        const sh = textPlane(word, { family: 'Space Grotesk', weight: 500, worldH: h, spacing: sp, px, color: '#17110b' });
-        sh.mesh.position.set(0.022, y - 0.026, 133.718);
-        const hi = textPlane(word, { family: 'Space Grotesk', weight: 500, worldH: h, spacing: sp, px, color: '#c9bda8' });
-        hi.mesh.position.set(-0.014, y + 0.02, 133.716);
-        for (const t of [sh, hi]) { t.mesh.rotation.y = Math.PI; grp.add(t.mesh); mats.push(t.mat); }
+      const carve = (word, y, worldH) => {
+        const px = 280, pad = px * 0.28, spacing = px * 0.24;
+        const c = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+        const font = `400 ${px}px Fraunces`;
+        ctx.font = font;
+        const w = Math.ceil(ctx.measureText(word).width + spacing * (word.length - 1) + pad * 2);
+        const h = Math.ceil(px * 1.45);
+        c.width = w; c.height = h;
+        ctx.font = font; ctx.textBaseline = 'middle';
+        const draw = (dy, dx, style) => {
+          ctx.fillStyle = style;
+          let x = pad;
+          for (const ch of word) {
+            ctx.fillText(ch, x + dx, h * 0.54 + dy);
+            x += ctx.measureText(ch).width + spacing;
+          }
+        };
+        draw(px * 0.014, px * 0.008, 'rgba(226,216,196,0.5)'); // light catching the lower lip
+        draw(-px * 0.006, 0, 'rgba(8,6,4,0.55)');              // upper shadow inside the cut
+        draw(0, 0, 'rgba(16,12,8,0.96)');                      // the incision
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 8;
+        const mat = new THREE.MeshBasicMaterial({
+          map: tex, transparent: true, opacity: 0, depthWrite: false,
+        });
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(worldH * (w / h), worldH), mat);
+        mesh.position.set(0, y, 133.717);
+        mesh.rotation.y = Math.PI;
+        mesh.renderOrder = 4;
+        grp.add(mesh); mats.push(mat);
       };
-      ['ACQUISITION', 'ARCHITECTURE', 'STEWARDSHIP'].forEach((w, i) => carve(w, 15.0 - i * 0.78, 0.5, 26, 150));
+      ['ACQUISITION', 'ARCHITECTURE', 'STEWARDSHIP'].forEach((w, i) => carve(w, 15.05 - i * 0.85, 0.52));
       const num = textPlane('N 46° 41′ · A COUNTRY OF QUIET ROOMS', {
         family: 'Space Grotesk', weight: 400, worldH: 0.2, spacing: 8, px: 90, color: '#241c14',
       });

@@ -52,12 +52,12 @@ export function createHouse(scene) {
   mats.glass = new THREE.MeshPhysicalMaterial({
     color: 0xdfe9ea,
     metalness: 0,
-    roughness: 0.04,
-    transmission: 1,
-    thickness: 0.04,
-    ior: 1.5,
+    roughness: 0.05,
+    transparent: true,
+    opacity: 0.14,
     envMapIntensity: 1.2,
     side: THREE.DoubleSide,
+    depthWrite: false,
   });
   mats.led = new THREE.MeshBasicMaterial({ color: 0xffc98a });
   mats.led.toneMapped = true;

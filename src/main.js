@@ -94,6 +94,7 @@ async function boot() {
   let loaderDone = false;
 
   function frame(now) {
+    renderer.info.reset();
     const dt = Math.min(0.05, (now - clock.last) / 1000);
     clock.last = now;
     clock.t += dt;

@@ -28,22 +28,28 @@ const DST = path.join(ROOT, 'public', 'assets', 'models-opt');
 
 // Per-asset triangle budgets (scanned nature assets are extremely dense).
 const TRI_BUDGET = {
-  fir_tree_01: 140000,
-  fir_sapling_medium: 40000,
-  tree_small_02: 40000,
-  rock_face_01: 60000,
-  rock_moss_set_01: 30000,
-  rock_moss_set_02: 30000,
-  boulder_01: 20000,
-  rock_07: 12000,
-  rock_09: 12000,
-  grass_medium_01: 8000,
-  grass_medium_02: 8000,
-  fern_02: 8000,
-  shrub_02: 10000,
-  shrub_03: 10000,
-  dead_tree_trunk: 15000,
-  tree_stump_01: 12000,
+  fir_tree_01: 90000,
+  fir_sapling_medium: 25000,
+  tree_small_02: 25000,
+  rock_face_01: 40000, // hero projection boulder — keep the silhouette
+  rock_moss_set_01: 20000,
+  rock_moss_set_02: 20000,
+  boulder_01: 15000,
+  rock_07: 10000,
+  rock_09: 10000,
+  grass_medium_01: 4000,
+  grass_medium_02: 4000,
+  fern_02: 3500,
+  shrub_02: 6000,
+  shrub_03: 6000,
+  dead_tree_trunk: 10000,
+  tree_stump_01: 8000,
+  potted_plant_01: 20000,
+  potted_plant_02: 18000,
+  anthurium_botany_01: 15000,
+  book_encyclopedia_set_01: 15000,
+  brass_vase_01: 8000,
+  dining_chair_02: 10000,
   DEFAULT: 60000,
 };
 
@@ -78,7 +84,7 @@ for (const id of dirs) {
     weld(),
     prune(),
     ...(tris > budget
-      ? [simplify({ simplifier: MeshoptSimplifier, ratio: budget / tris, error: 0.001 })]
+      ? [simplify({ simplifier: MeshoptSimplifier, ratio: budget / tris, error: 0.01 })]
       : []),
     prune(),
     textureCompress({ encoder: sharp, targetFormat: 'jpeg', resize: [1024, 1024] }),

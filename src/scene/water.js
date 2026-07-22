@@ -17,8 +17,8 @@ const NOISE_GLSL = /* glsl */ `
       u.y);
   }
   float wfbm(vec2 p) {
-    float v = 0.0, a = 0.55;
-    for (int o = 0; o < 3; o++) {
+    float v = 0.0, a = 0.6;
+    for (int o = 0; o < 2; o++) {
       v += wnoise(p) * a;
       p = p * 2.13 + 17.7;
       a *= 0.5;
@@ -85,6 +85,15 @@ export function createWater(scene) {
   pool.rotation.x = -Math.PI / 2;
   pool.position.set(6, 13.0, 100.5);
   scene.add(pool);
+  // the mirror re-renders the scene; every second frame is fluid to the eye
+  // (the animated veil sits on top anyway) and halves its cost
+  {
+    const renderMirror = pool.onBeforeRender.bind(pool);
+    let parity = 0;
+    pool.onBeforeRender = (renderer, scn, camera) => {
+      if ((parity++ & 1) === 0) renderMirror(renderer, scn, camera);
+    };
+  }
   // dark slate tint with live ripples over the mirror
   const poolVeil = new THREE.Mesh(
     new THREE.PlaneGeometry(11, 3.6),

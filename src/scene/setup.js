@@ -8,21 +8,31 @@ import { state } from '../state.js';
 export function createStage(canvas) {
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: false, // composer pipeline — canvas MSAA would only tax the final blit
     powerPreference: 'high-performance',
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.8;
+  renderer.info.autoReset = false; // manual reset per frame → honest __dbg numbers
+  // glass transmission re-renders the scene every frame — half-res is
+  // indistinguishable behind 0.04-roughness low-iron glass
+  if ('transmissionResolutionScale' in renderer) renderer.transmissionResolutionScale = 0.5;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 1400);
   camera.position.set(-190, 30, -240);
 
-  const composer = new EffectComposer(renderer);
+  const composer = new EffectComposer(
+    renderer,
+    new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+      type: THREE.HalfFloatType,
+      samples: 4, // true MSAA in the scene pass (canvas AA is a no-op under a composer)
+    }),
+  );
   composer.addPass(new RenderPass(scene, camera));
   const bloom = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
@@ -47,13 +57,13 @@ export function createStage(canvas) {
   let slowFrames = 0;
   function adapt(dt) {
     if (state.quality === 0) return;
-    if (dt > 1 / 27) slowFrames++;
+    if (dt > 1 / 30) slowFrames++;
     else slowFrames = Math.max(0, slowFrames - 2);
-    if (slowFrames > 90) {
+    if (slowFrames > 60) {
       slowFrames = 0;
       if (state.quality === 2) {
         state.quality = 1;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.15));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.1));
         resize();
         console.info('[stillwater] quality -> reduced');
       } else if (state.quality === 1) {
