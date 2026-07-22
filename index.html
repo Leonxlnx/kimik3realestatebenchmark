@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Halcyon Estates — Stillwater House</title>
+    <meta
+      name="description"
+      content="Halcyon Estates presents Stillwater House: a cantilevered glass-and-timber villa above a still mountain lake. Private brokerage, architectural curation, off-market acquisitions."
+    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2310140f'/%3E%3Cpath d='M3 11 8 4l5 7' fill='none' stroke='%23b08d57' stroke-width='1.4'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/src/style.css" />
+    <link rel="preload" href="/assets/fonts/Fraunces-var.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="/assets/fonts/SpaceGrotesk-var.ttf" as="font" type="font/ttf" crossorigin />
+  </head>
+  <body>
+    <!-- Fixed WebGL stage -->
+    <div id="stage" aria-hidden="true">
+      <canvas id="gl"></canvas>
+      <div id="vignette"></div>
+      <div id="grain"></div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" role="status" aria-live="polite">
+      <div class="loader-inner">
+        <p class="loader-brand">HALCYON</p>
+        <p class="loader-sub">Stillwater House</p>
+        <div class="loader-bar"><span id="loader-fill"></span></div>
+        <p class="loader-note" id="loader-note">Surveying the shoreline…</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <header id="site-header">
+      <a class="brand" href="#act-overture" data-jump="0.02">
+        <span class="brand-mark" aria-hidden="true"></span>
+        Halcyon&nbsp;Estates
+      </a>
+      <nav aria-label="Journey">
+        <ul id="journey-nav">
+          <li><a href="#act-overture" data-jump="0.02"><i></i>Overture</a></li>
+          <li><a href="#act-story" data-jump="0.16"><i></i>Story</a></li>
+          <li><a href="#act-services" data-jump="0.28"><i></i>Services</a></li>
+          <li><a href="#act-portfolio" data-jump="0.44"><i></i>Portfolio</a></li>
+          <li><a href="#act-process" data-jump="0.55"><i></i>Process</a></li>
+          <li><a href="#act-voices" data-jump="0.72"><i></i>Voices</a></li>
+          <li><a href="#act-contact" data-jump="0.96"><i></i>Contact</a></li>
+        </ul>
+      </nav>
+      <div id="progress" aria-hidden="true"><span id="progress-fill"></span></div>
+    </header>
+
+    <p id="scroll-hint" aria-hidden="true"><span>Scroll to begin the approach</span></p>
+
+    <!-- Accessible content: read by assistive tech always; visible in fallback mode -->
+    <main id="content">
+      <section id="act-overture" aria-labelledby="h-overture">
+        <p class="kicker">Halcyon Estates presents</p>
+        <h1 id="h-overture">Stillwater House</h1>
+        <p>
+          A cantilevered villa of charred timber and glass above a still mountain
+          lake — 1,240 metres up, where the water keeps the sky.
+        </p>
+      </section>
+
+      <section id="act-story" aria-labelledby="h-story">
+        <h2 id="h-story">The house, and who we are</h2>
+        <p>
+          Halcyon Estates is a private brokerage and design house for rare
+          properties. Since 1998 we have placed fewer than four hundred homes —
+          each one chosen the way this valley chooses its weather: slowly, and
+          without apology.
+        </p>
+        <p>
+          Stillwater House is our fourteenth commission on this shore: five
+          pavilions of local stone, blackened cedar and low-iron glass, held
+          above the waterline on a single concrete spine.
+        </p>
+      </section>
+
+      <section id="act-services" aria-labelledby="h-services">
+        <h2 id="h-services">What we do</h2>
+        <ul>
+          <li><strong>Private Brokerage</strong> — discreet sale and acquisition of significant homes.</li>
+          <li><strong>Architectural Curation</strong> — we commission, restore and finish houses worth keeping.</li>
+          <li><strong>Off-Market Access</strong> — the majority of our placements are never listed.</li>
+          <li><strong>Stewardship</strong> — year-round care of the estates we place.</li>
+        </ul>
+      </section>
+
+      <section id="act-portfolio" aria-labelledby="h-portfolio">
+        <h2 id="h-portfolio">Selected residences</h2>
+        <ul>
+          <li>
+            <strong>01 · Glasshouse</strong> — Lake Como. 620 m² of low-iron glass
+            and travertine above the water. Guide on request.
+          </li>
+          <li>
+            <strong>02 · Cedar Court</strong> — Kyoto. 480 m² around a walled
+            courtyard of maple and moss. Guide on request.
+          </li>
+          <li>
+            <strong>03 · The Long Barn</strong> — Cotswolds. 710 m², a restored
+            agricultural hall with a twenty-metre gallery. Guide on request.
+          </li>
+        </ul>
+      </section>
+
+      <section id="act-process" aria-labelledby="h-process">
+        <h2 id="h-process">How we work</h2>
+        <ol>
+          <li><strong>Listen</strong> — the site, the light, the life.</li>
+          <li><strong>Compose</strong> — architecture as a sequence of views.</li>
+          <li><strong>Build</strong> — craft verified at every joint.</li>
+          <li><strong>Care</strong> — stewardship beyond the sale.</li>
+        </ol>
+      </section>
+
+      <section id="act-results" aria-labelledby="h-results">
+        <h2 id="h-results">The record</h2>
+        <ul>
+          <li>27 years on this shore</li>
+          <li>342 estates placed</li>
+          <li>$2.1B quietly represented</li>
+          <li>96% placed off-market</li>
+        </ul>
+      </section>
+
+      <section id="act-voices" aria-labelledby="h-voices">
+        <h2 id="h-voices">In their words</h2>
+        <blockquote>
+          <p>“They sold us the horizon, then built the house around it.”</p>
+          <footer>— M. &amp; J. Ahrens, Geneva</footer>
+        </blockquote>
+        <blockquote>
+          <p>“Every return feels like the first arrival.”</p>
+          <footer>— S. Okafor, London</footer>
+        </blockquote>
+      </section>
+
+      <section id="act-contact" aria-labelledby="h-contact">
+        <h2 id="h-contact">Begin the conversation</h2>
+        <address>
+          Halcyon Estates — Private Office<br />
+          Geneva · Zürich · London<br />
+          <a href="mailto:enquiries@halcyon.estate">enquiries@halcyon.estate</a><br />
+          <a href="tel:+41220004812">+41 22 000 48 12</a>
+        </address>
+        <p>Viewings are held at dusk, when the house is most itself.</p>
+      </section>
+    </main>
+
+    <footer id="site-footer">
+      <p>© 2026 Halcyon Estates. Stillwater House is a private residence; shown by appointment.</p>
+      <p>
+        Licensed brokerage, Northern Range Registry № 88-014. Equal Housing Opportunity.
+      </p>
+      <p class="credits">
+        3D models, materials &amp; environments: <a href="https://polyhaven.com">Poly Haven</a> (CC0).
+        Typography: Fraunces &amp; Space Grotesk (OFL). Full manifest in ASSETS.md.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
