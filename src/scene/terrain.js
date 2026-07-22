@@ -67,8 +67,20 @@ export function createTerrain(scene) {
   }
   geo.computeVertexNormals();
 
-  const groundMat = pbrMaterial('forest_ground_04', '2k', { repeat: 48, roughness: 1 });
-  groundMat.color = new THREE.Color(0x8a8f78);
+  // macro color variation breaks the texture tiling at landscape scale
+  const colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), z = pos.getZ(i);
+    const v = 0.85 + 0.3 * fbm(x * 0.01, z * 0.01, 3) + 0.08 * fbm(x * 0.06, z * 0.06, 2);
+    colors[i * 3] = v;
+    colors[i * 3 + 1] = v * (0.97 + 0.05 * fbm(x * 0.013 + 40, z * 0.013, 2));
+    colors[i * 3 + 2] = v * (0.94 + 0.04 * fbm(x * 0.017, z * 0.017 + 80, 2));
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+  const groundMat = pbrMaterial('forest_ground_04', '2k', { repeat: 32, roughness: 1 });
+  groundMat.color = new THREE.Color(0x93987e);
+  groundMat.vertexColors = true;
   const terrain = new THREE.Mesh(geo, groundMat);
   terrain.receiveShadow = true;
   scene.add(terrain);
@@ -105,7 +117,7 @@ export function createTerrain(scene) {
   pGeo.setIndex(idx);
   pGeo.computeVertexNormals();
   const pathMat = pbrMaterial('gravel_floor_02', '2k', { repeat: 1.6, roughness: 1 });
-  pathMat.color = new THREE.Color(0x8f887c);
+  pathMat.color = new THREE.Color(0x7d766b);
   pathMat.map.repeat.set(1.2, 8);
   const path = new THREE.Mesh(pGeo, pathMat);
   path.receiveShadow = true;

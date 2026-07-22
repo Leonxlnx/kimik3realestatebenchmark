@@ -88,7 +88,10 @@ async function boot() {
   stageNote('first light…');
 
   const clock = { last: performance.now(), t: 0 };
-  let firstFrame = true;
+  let warmFrames = 0;
+  const bootAt = performance.now();
+  let shadowsFrozen = false;
+  let loaderDone = false;
 
   function frame(now) {
     const dt = Math.min(0.05, (now - clock.last) / 1000);
@@ -106,11 +109,23 @@ async function boot() {
     typography.update(t);
 
     composer.render();
-    if (firstFrame) {
-      firstFrame = false;
+    warmFrames++;
+    // hold the loader until the pipeline is truly warm: enough frames
+    // rendered AND a minimum dwell, so the reveal never stutters
+    if (!loaderDone && warmFrames >= 24 && now - bootAt >= 2500) {
+      loaderDone = true;
       finishLoader();
     }
-    adapt(dt);
+    // no quality adaptation during warm-up — early frames are always slow
+    if (warmFrames > 90) {
+      adapt(dt);
+      if (!shadowsFrozen) {
+        // sun and scene are static: bake the shadow maps once
+        shadowsFrozen = true;
+        renderer.shadowMap.autoUpdate = false;
+        renderer.shadowMap.needsUpdate = true;
+      }
+    }
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);

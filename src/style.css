@@ -125,6 +125,35 @@ body.webgl #scroll-hint { display: block; }
 @keyframes hint { 0%, 100% { transform: translateY(0); opacity: .65; } 50% { transform: translateY(6px); opacity: 1; } }
 #scroll-hint.gone { opacity: 0; }
 
+/* ------------------------------------------------------------- end card */
+#end-card { display: none; }
+body.webgl #end-card {
+  display: block; position: fixed; z-index: 19; left: 50%; bottom: 5vh;
+  transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
+  text-align: center; padding: 1.2rem 2.2rem 1.1rem;
+  background: rgba(10, 18, 20, 0.58); backdrop-filter: blur(10px);
+  border: 1px solid rgba(176, 141, 87, 0.35);
+  transition: opacity 1.2s ease, transform 1.2s ease;
+}
+body.webgl #end-card.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+#end-card .end-title {
+  font-family: var(--serif); font-variation-settings: 'opsz' 60, 'wght' 500;
+  font-size: 1.05rem; letter-spacing: 0.08em; margin: 0 0 0.55rem; color: var(--paper);
+}
+#end-card .end-links { margin: 0 0 0.5rem; display: flex; gap: 1.6rem; justify-content: center; flex-wrap: wrap; }
+#end-card .end-links a {
+  color: var(--bronze); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.14em;
+  border-bottom: 1px solid rgba(176, 141, 87, 0.4); padding-bottom: 1px; transition: color 0.3s, border-color 0.3s;
+}
+#end-card .end-links a:hover, #end-card .end-links a:focus-visible { color: var(--paper); border-color: var(--paper); }
+#end-card .end-meta { margin: 0; font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(242, 239, 231, 0.55); }
+#end-card .end-meta a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+#end-card .end-meta a:hover, #end-card .end-meta a:focus-visible { color: var(--bronze); }
+#end-card a:focus-visible { outline: 1px solid var(--bronze); outline-offset: 4px; }
+@media (max-width: 720px) {
+  body.webgl #end-card { width: calc(100vw - 2rem); padding: 1rem 1rem 0.9rem; }
+}
+
 /* --------------------------------------------------------- text content */
 /* In WebGL mode the copy lives inside the 3D world; the DOM mirror is for
    assistive tech. In fallback mode it renders as a normal page. */

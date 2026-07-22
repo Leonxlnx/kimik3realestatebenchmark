@@ -2,70 +2,73 @@ import * as THREE from 'three';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { state } from '../state.js';
 
-// Tiling ripple normal map, generated once on a canvas.
-function rippleNormalTexture(size = 256) {
-  const h = new Float32Array(size * size);
-  // a few octaves of value noise
-  const rand = (x, y) => {
-    const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
-    return s - Math.floor(s);
-  };
-  const noise = (x, y) => {
-    const xi = Math.floor(x), yi = Math.floor(y);
-    const xf = x - xi, yf = y - yi;
-    const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
-    const w = size / 8;
-    const a = rand(((xi % w) + w) % w, ((yi % w) + w) % w);
-    const b = rand((((xi + 1) % w) + w) % w, ((yi % w) + w) % w);
-    const c = rand(((xi % w) + w) % w, (((yi + 1) % w) + w) % w);
-    const d = rand((((xi + 1) % w) + w) % w, (((yi + 1) % w) + w) % w);
-    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
-  };
-  for (let y = 0; y < size; y++)
-    for (let x = 0; x < size; x++) {
-      let v = 0, amp = 1, freq = 8;
-      for (let o = 0; o < 4; o++) {
-        v += noise((x / size) * freq, (y / size) * freq) * amp;
-        amp *= 0.5;
-        freq *= 2;
-      }
-      h[y * size + x] = v;
+// Procedural animated micro-normals injected into MeshStandardMaterial —
+// no texture, so no tiling, no block artifacts, infinite clean water.
+const NOISE_GLSL = /* glsl */ `
+  float whash(vec2 p) {
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+  }
+  float wnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(
+      mix(whash(i), whash(i + vec2(1.0, 0.0)), u.x),
+      mix(whash(i + vec2(0.0, 1.0)), whash(i + vec2(1.0, 1.0)), u.x),
+      u.y);
+  }
+  float wfbm(vec2 p) {
+    float v = 0.0, a = 0.55;
+    for (int o = 0; o < 3; o++) {
+      v += wnoise(p) * a;
+      p = p * 2.13 + 17.7;
+      a *= 0.5;
     }
-  const data = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y++)
-    for (let x = 0; x < size; x++) {
-      const xm = (x - 1 + size) % size, xp = (x + 1) % size;
-      const ym = (y - 1 + size) % size, yp = (y + 1) % size;
-      const dx = (h[y * size + xp] - h[y * size + xm]) * 2.2;
-      const dy = (h[yp * size + x] - h[ym * size + x]) * 2.2;
-      const inv = 1 / Math.hypot(dx, dy, 1);
-      const i = (y * size + x) * 4;
-      data[i] = (-dx * inv * 0.5 + 0.5) * 255;
-      data[i + 1] = (-dy * inv * 0.5 + 0.5) * 255;
-      data[i + 2] = inv * 255;
-      data[i + 3] = 255;
-    }
-  const tex = new THREE.DataTexture(data, size, size);
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.generateMipmaps = true;
-  tex.minFilter = THREE.LinearMipmapLinearFilter;
-  tex.needsUpdate = true;
-  return tex;
+    return v;
+  }
+`;
+
+function makeWaterMaterial({ color, roughness, metalness, envMapIntensity, rippleScale, rippleAmp, uniforms, transparent = false, opacity = 1, depthWrite = true }) {
+  const mat = new THREE.MeshStandardMaterial({
+    color, roughness, metalness, envMapIntensity, transparent, opacity, depthWrite,
+  });
+  mat.onBeforeCompile = (shader) => {
+    shader.uniforms.uTime = uniforms.uTime;
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWp;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(position, 1.0)).xyz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\nvarying vec3 vWp;\nuniform float uTime;\n${NOISE_GLSL}`)
+      .replace('#include <normal_fragment_maps>', /* glsl */ `
+        {
+          vec2 p = vWp.xz * ${rippleScale.toFixed(3)};
+          vec2 t1 = vec2(uTime * 0.045, uTime * 0.028);
+          vec2 t2 = vec2(-uTime * 0.031, uTime * 0.052);
+          float e = 0.35;
+          float n0 = wfbm(p + t1) + 0.5 * wfbm(p * 2.7 + t2);
+          float nx = wfbm(p + vec2(e, 0.0) + t1) + 0.5 * wfbm((p + vec2(e, 0.0)) * 2.7 + t2);
+          float nz = wfbm(p + vec2(0.0, e) + t1) + 0.5 * wfbm((p + vec2(0.0, e)) * 2.7 + t2);
+          vec3 pertW = vec3(-(nx - n0) / e, 0.0, -(nz - n0) / e);
+          vec3 pertV = normalize((viewMatrix * vec4(pertW, 0.0)).xyz);
+          normal = normalize(normal + pertV * ${rippleAmp.toFixed(3)});
+        }
+      `);
+  };
+  return mat;
 }
 
 export function createWater(scene) {
-  const ripples = rippleNormalTexture();
+  const uniforms = { uTime: { value: 0 } };
 
   // ---- the lake ------------------------------------------------------------
-  const lakeMat = new THREE.MeshStandardMaterial({
-    color: new THREE.Color(0x1b2b30),
-    metalness: 0.88,
-    roughness: 0.05,
-    normalMap: ripples,
-    normalScale: new THREE.Vector2(0.07, 0.07),
-    envMapIntensity: 0.55,
+  const lakeMat = makeWaterMaterial({
+    color: new THREE.Color(0x16242a),
+    metalness: 0.85,
+    roughness: 0.07,
+    envMapIntensity: 0.9,
+    rippleScale: 0.85,
+    rippleAmp: 0.035,
+    uniforms,
   });
-  ripples.repeat.set(40, 40);
   const lake = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600, 1, 1), lakeMat);
   lake.rotation.x = -Math.PI / 2;
   lake.position.set(0, 0, -300);
@@ -74,41 +77,42 @@ export function createWater(scene) {
 
   // ---- the reflecting pool on the terrace ----------------------------------
   const pool = new Reflector(new THREE.PlaneGeometry(11, 3.6), {
-    textureWidth: 768,
-    textureHeight: 768,
+    textureWidth: 512,
+    textureHeight: 512,
     color: 0x101a1c,
     clipBias: 0.003,
   });
   pool.rotation.x = -Math.PI / 2;
   pool.position.set(6, 13.0, 100.5);
   scene.add(pool);
-  // dark tint + slight wave over the mirror
+  // dark slate tint with live ripples over the mirror
   const poolVeil = new THREE.Mesh(
     new THREE.PlaneGeometry(11, 3.6),
-    new THREE.MeshStandardMaterial({
-      color: 0x0a1214,
+    makeWaterMaterial({
+      color: 0x0a1416,
       transparent: true,
-      opacity: 0.45,
-      metalness: 0.6,
-      roughness: 0.25,
-      envMapIntensity: 0.15,
-      normalMap: ripples,
-      normalScale: new THREE.Vector2(0.15, 0.15),
+      opacity: 0.52,
       depthWrite: false,
+      metalness: 0.5,
+      roughness: 0.3,
+      envMapIntensity: 0.2,
+      rippleScale: 2.2,
+      rippleAmp: 0.08,
+      uniforms,
     }),
   );
   poolVeil.rotation.x = -Math.PI / 2;
   poolVeil.position.set(6, 13.015, 100.5);
   scene.add(poolVeil);
 
-  const duskColor = new THREE.Color(0x1b2b30);
-  const nightColor = new THREE.Color(0x070d12);
+  const duskColor = new THREE.Color(0x16242a);
+  const nightColor = new THREE.Color(0x060c11);
 
   function update(t) {
-    ripples.offset.set((t * 0.006) % 1, (t * 0.0045) % 1);
+    uniforms.uTime.value = t;
     lakeMat.color.copy(duskColor).lerp(nightColor, state.night);
-    lakeMat.envMapIntensity = THREE.MathUtils.lerp(0.55, 0.25, state.night);
-    lakeMat.roughness = THREE.MathUtils.lerp(0.1, 0.08, state.night);
+    lakeMat.envMapIntensity = THREE.MathUtils.lerp(0.9, 0.35, state.night);
+    lakeMat.roughness = THREE.MathUtils.lerp(0.07, 0.1, state.night);
   }
 
   return { lake, pool, update };

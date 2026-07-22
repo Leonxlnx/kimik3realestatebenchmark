@@ -9,6 +9,7 @@ export function initUI() {
 
   const hint = document.getElementById('scroll-hint');
   const fill = document.getElementById('progress-fill');
+  const endCard = document.getElementById('end-card');
   const navLinks = [...document.querySelectorAll('#journey-nav a')];
 
   function maxScroll() {
@@ -64,6 +65,7 @@ export function initUI() {
       state.pointer.sx += (state.pointer.x - state.pointer.sx) * (1 - Math.exp(-dt * 4));
       state.pointer.sy += (state.pointer.y - state.pointer.sy) * (1 - Math.exp(-dt * 4));
       fill.style.width = `${(state.smooth * 100).toFixed(2)}%`;
+      endCard.classList.toggle('show', state.smooth > 0.94);
     },
   };
 }
