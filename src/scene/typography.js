@@ -23,7 +23,7 @@ async function fontsReady() {
 // One line of text → plane mesh of exact world height, centered on its origin.
 function textPlane(text, {
   family = 'Fraunces', weight = 300, worldH = 1, color = '#f2ecdf',
-  spacing = 0, px = 220, renderOrder = 4,
+  spacing = 0, px = 220, renderOrder = 4, fog = true,
 } = {}) {
   const pad = px * 0.5;
   const c = document.createElement('canvas');
@@ -41,7 +41,7 @@ function textPlane(text, {
   tex.anisotropy = 8;
   const worldW = worldH * (w / h);
   const mat = new THREE.MeshBasicMaterial({
-    map: tex, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide,
+    map: tex, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, fog,
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(worldW, worldH), mat);
   mesh.renderOrder = renderOrder;
@@ -61,12 +61,12 @@ export function createTypography(scene) {
     sky.position.set(0, 27, 45);
     scene.add(sky);
     {
-      const t1 = textPlane('STILLWATER', { weight: 300, worldH: 11, spacing: 90, px: 260, color: '#1c1813' });
+      const t1 = textPlane('STILLWATER', { weight: 460, worldH: 12.5, spacing: 90, px: 260, color: '#0a0805', fog: false });
       t1.mesh.position.y = 5.5;
-      const t2 = textPlane('HOUSE', { weight: 300, worldH: 11, spacing: 90, px: 260, color: '#1c1813' });
+      const t2 = textPlane('HOUSE', { weight: 460, worldH: 12.5, spacing: 90, px: 260, color: '#0a0805', fog: false });
       t2.mesh.position.y = -6.8;
       const sub = textPlane('A RESIDENCE BY HALCYON ESTATES', {
-        family: 'Space Grotesk', weight: 500, worldH: 1.7, spacing: 55, px: 120, color: '#4a4438',
+        family: 'Space Grotesk', weight: 500, worldH: 1.7, spacing: 55, px: 120, color: '#241f16', fog: false,
       });
       sub.mesh.position.y = -16.5;
       for (const t of [t1, t2, sub]) { t.mesh.rotation.y = Math.PI; sky.add(t.mesh); }
@@ -147,9 +147,9 @@ export function createTypography(scene) {
             x += ctx.measureText(ch).width + spacing;
           }
         };
-        draw(px * 0.014, px * 0.008, 'rgba(226,216,196,0.5)'); // light catching the lower lip
-        draw(-px * 0.006, 0, 'rgba(8,6,4,0.55)');              // upper shadow inside the cut
-        draw(0, 0, 'rgba(16,12,8,0.96)');                      // the incision
+        draw(-px * 0.012, 0, 'rgba(10,7,5,0.7)');              // dark rim at the top of the cut
+        draw(px * 0.006, px * 0.004, 'rgba(58,46,32,0.55)');   // depth low-right
+        draw(0, 0, 'rgba(233,222,198,0.97)');                  // pale stone-bronze fill
         const tex = new THREE.CanvasTexture(c);
         tex.colorSpace = THREE.SRGBColorSpace;
         tex.anisotropy = 8;
@@ -164,7 +164,7 @@ export function createTypography(scene) {
       };
       ['ACQUISITION', 'ARCHITECTURE', 'STEWARDSHIP'].forEach((w, i) => carve(w, 15.05 - i * 0.85, 0.52));
       const num = textPlane('N 46° 41′ · A COUNTRY OF QUIET ROOMS', {
-        family: 'Space Grotesk', weight: 400, worldH: 0.2, spacing: 8, px: 90, color: '#241c14',
+        family: 'Space Grotesk', weight: 400, worldH: 0.2, spacing: 8, px: 90, color: '#c9bda4',
       });
       num.mesh.position.set(0, 12.98, 133.718);
       num.mesh.rotation.y = Math.PI;

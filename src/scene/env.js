@@ -43,6 +43,10 @@ export async function createEnvironment(scene, renderer) {
         float PI = 3.14159265;
         vec2 uv = vec2(atan(d.z, d.x) / (2.0 * PI) + 0.5, 1.0 - acos(clamp(d.y, -1.0, 1.0)) / PI);
         vec3 a = texture2D(texA, uv).rgb;
+        // soft highlight rolloff, then cool grade toward natural blue
+        a = a / (1.0 + a * 0.28);
+        float l = dot(a, vec3(0.2126, 0.7152, 0.0722));
+        a = mix(vec3(l), a, 1.18) * vec3(0.78, 0.89, 1.13);
         vec3 b = texture2D(texB, uv).rgb * tintB;
         // output linear HDR — OutputPass owns tonemapping + sRGB
         gl_FragColor = vec4(mix(a, b, mixF) * exposure, 1.0);
@@ -118,7 +122,7 @@ export async function createEnvironment(scene, renderer) {
   function update() {
     const n = state.night;
     skyMat.uniforms.mixF.value = n;
-    skyMat.uniforms.exposure.value = THREE.MathUtils.lerp(0.45, 0.14, n);
+    skyMat.uniforms.exposure.value = THREE.MathUtils.lerp(0.38, 0.14, n);
     stars.material.opacity = THREE.MathUtils.smoothstep(n, 0.5, 0.95) * 0.9;
     scene.fog.color.copy(fogDusk).lerp(fogNight, n);
     scene.fog.density = THREE.MathUtils.lerp(0.0021, 0.0014, n);
